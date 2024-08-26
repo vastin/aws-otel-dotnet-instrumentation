@@ -58,14 +58,12 @@ internal sealed class AwsSpanProcessingUtil
     {
         try
         {
+            string SqlDialectKeywordsJsonFullPath = "configuration/sql_dialect_keywords.json";
             string otelDotnetAtuoHome = Environment.GetEnvironmentVariable("OTEL_DOTNET_AUTO_HOME");
-
-            if (string.IsNullOrEmpty(otelDotnetAtuoHome))
+            if (!string.IsNullOrEmpty(otelDotnetAtuoHome))
             {
-                Console.WriteLine("The environment variable OTEL_DOTNET_AUTO_HOME is not set or is empty.");
+                SqlDialectKeywordsJsonFullPath = Path.Combine(otelDotnetAtuoHome, "configuration", "sql_dialect_keywords.json");
             }
-
-            string SqlDialectKeywordsJsonFullPath = Path.Combine(otelDotnetAtuoHome, "configuration", "sql_dialect_keywords.json");
 
             using (StreamReader r = new StreamReader(SqlDialectKeywordsJsonFullPath))
             {
