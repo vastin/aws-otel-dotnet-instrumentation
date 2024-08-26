@@ -58,14 +58,14 @@ internal sealed class AwsSpanProcessingUtil
     {
         try
         {
-            string SqlDialectKeywordsJsonFullPath = "configuration/sql_dialect_keywords.json";
-            string otelDotnetAtuoHome = Environment.GetEnvironmentVariable("OTEL_DOTNET_AUTO_HOME");
+            string sqlDialectKeywordsJsonFullPath = "configuration/sql_dialect_keywords.json";
+            string otelDotnetAtuoHome = Environment.GetEnvironmentVariable("OTEL_DOTNET_AUTO_HOME") ?? "";
             if (!string.IsNullOrEmpty(otelDotnetAtuoHome))
             {
-                SqlDialectKeywordsJsonFullPath = Path.Combine(otelDotnetAtuoHome, "configuration", "sql_dialect_keywords.json");
+                sqlDialectKeywordsJsonFullPath = Path.Combine(otelDotnetAtuoHome, "configuration", "sql_dialect_keywords.json");
             }
 
-            using (StreamReader r = new StreamReader(SqlDialectKeywordsJsonFullPath))
+            using (StreamReader r = new StreamReader(sqlDialectKeywordsJsonFullPath))
             {
                 string json = r.ReadToEnd();
                 JObject jObject = JObject.Parse(json);
