@@ -207,6 +207,7 @@ public class Plugin
     /// <param name="options"><see cref="HttpClientTraceInstrumentationOptions"/> options to configure</param>
     public void ConfigureTracesOptions(HttpClientTraceInstrumentationOptions options)
     {
+#if !NETFRAMEWORK
         options.FilterHttpRequestMessage = request =>
         {
             if (request.RequestUri?.AbsolutePath == "/GetSamplingRules" || request.RequestUri?.AbsolutePath == "/SamplingTargets")
@@ -224,6 +225,7 @@ public class Plugin
                 this.ShouldSampleParent(activity);
             }
         };
+#endif
 
 #if NETFRAMEWORK
         options.FilterHttpWebRequest = request =>
@@ -236,7 +238,7 @@ public class Plugin
             return true;
         };
 
-        options.EnrichWithHttpWebResponse = (activity, request) =>
+        options.EnrichWithHttpWebRequest = (activity, request) =>
         {
             if (this.sampler != null && this.sampler.GetType() == typeof(AWSXRayRemoteSampler))
             {
