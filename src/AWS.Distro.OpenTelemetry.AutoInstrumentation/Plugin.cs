@@ -224,6 +224,26 @@ public class Plugin
                 this.ShouldSampleParent(activity);
             }
         };
+
+#if NETFRAMEWORK
+        options.FilterHttpWebRequest = request =>
+        {
+            if (request.RequestUri?.AbsolutePath == "/GetSamplingRules" || request.RequestUri?.AbsolutePath == "/SamplingTargets")
+            {
+                return false;
+            }
+
+            return true;
+        };
+
+        options.EnrichWithHttpWebResponse = (activity, request) =>
+        {
+            if (this.sampler != null && this.sampler.GetType() == typeof(AWSXRayRemoteSampler))
+            {
+                this.ShouldSampleParent(activity);
+            }
+        };
+#endif
     }
 
     /// <summary>
