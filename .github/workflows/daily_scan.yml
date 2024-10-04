@@ -61,11 +61,9 @@ jobs:
         run: |
           ./dependency-check/bin/dependency-check.sh --project "AWS.Distro.OpenTelemetry.AutoInstrumentation" --nvdApiKey ${{ env.NVD_API_KEY_NVD_API_KEY }} --out . --scan "**/*.csproj"
 
-      - name: Upload Dependency Check Report
-        uses: actions/upload-artifact@v2
-        with:
-          name: dependency-check-report
-          path: dependency-check-report.html
+      - name: Print dependency scan results on failure
+        if: ${{ steps.dep_scan.outcome != 'success' }}
+        run: less dependency-check-report.html
 
       - name: Perform high image scan
         if: always()
