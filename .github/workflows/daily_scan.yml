@@ -83,28 +83,28 @@ jobs:
           image-ref: "public.ecr.aws/aws-observability/adot-autoinstrumentation-dotnet:v1.3.2-amd64"
           severity: 'MEDIUM,LOW,UNKNOWN'
 
-      - name: Configure AWS Credentials for emitting metrics
-        if: always()
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.MONITORING_ROLE_ARN }}
-          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+      # - name: Configure AWS Credentials for emitting metrics
+      #   if: always()
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     role-to-assume: ${{ secrets.MONITORING_ROLE_ARN }}
+      #     aws-region: ${{ env.AWS_DEFAULT_REGION }}
 
-      - name: Publish high scan status
-        if: always()
-        run: |
-          value="${{ steps.high_scan.outcome == 'success' && '1.0' || '0.0' }}"
-          aws cloudwatch put-metric-data --namespace 'ADOT/GitHubActions' \
-            --metric-name Success \
-            --dimensions repository=${{ github.repository }},branch=${{ github.ref_name }},workflow=daily_scan_high \
-            --value $value
+      # - name: Publish high scan status
+      #   if: always()
+      #   run: |
+      #     value="${{ steps.high_scan.outcome == 'success' && '1.0' || '0.0' }}"
+      #     aws cloudwatch put-metric-data --namespace 'ADOT/GitHubActions' \
+      #       --metric-name Success \
+      #       --dimensions repository=${{ github.repository }},branch=${{ github.ref_name }},workflow=daily_scan_high \
+      #       --value $value
 
-      # DependencyCheck for Python is experimental and prone to false positives. Until it is stable, use only for low monitoring.
-      - name: Publish low scan status
-        if: always()
-        run: |
-          value="${{ steps.low_scan.outcome == 'success' && steps.dep_scan.outcome == 'success' && '1.0' || '0.0'}}"
-          aws cloudwatch put-metric-data --namespace 'ADOT/GitHubActions' \
-            --metric-name Success \
-            --dimensions repository=${{ github.repository }},branch=${{ github.ref_name }},workflow=daily_scan_low \
-            --value $value
+      # # DependencyCheck for Python is experimental and prone to false positives. Until it is stable, use only for low monitoring.
+      # - name: Publish low scan status
+      #   if: always()
+      #   run: |
+      #     value="${{ steps.low_scan.outcome == 'success' && steps.dep_scan.outcome == 'success' && '1.0' || '0.0'}}"
+      #     aws cloudwatch put-metric-data --namespace 'ADOT/GitHubActions' \
+      #       --metric-name Success \
+      #       --dimensions repository=${{ github.repository }},branch=${{ github.ref_name }},workflow=daily_scan_low \
+      #       --value $value
