@@ -2,9 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+#if !NETFRAMEWORK
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+#endif
 using Newtonsoft.Json.Linq;
 using OpenTelemetry;
 using static AWS.Distro.OpenTelemetry.AutoInstrumentation.AwsAttributeKeys;
