@@ -590,7 +590,8 @@ class AWSSdkTest(ContractTestBase):
             "GET knowledgebases/test-knowledge-base/datasources/test-data-source",
             "POST agents/test-agent/agentAliases/test-agent-alias/sessions/test-session/text",
             "POST model/test-model/invoke", "POST knowledgebases/test-knowledge-base/retrieve"
-        }        for metric in target_metrics:
+        }
+        for metric in target_metrics:
             for dp in metric.exponential_histogram.data_points:
                 # remove dp generated from manual response
                 attribute_dict = self._get_attributes_dict(dp.attributes)
