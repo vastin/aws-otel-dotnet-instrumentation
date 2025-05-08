@@ -49,15 +49,19 @@ public class OtlpUdpExporter : BaseExporter<Activity>
     /// <inheritdoc/>
     public override ExportResult Export(in Batch<Activity> batch)
     {
-        byte[]? serializedData = OtlpExporterUtils.SerializeSpans(batch, this.processResource);
-        if (serializedData == null)
+        // Chose 65,527 because this is the max size of the data in UDP Datagram
+        byte[] serializedData = new byte[65527];
+
+        int serializedDataLength = OtlpExporterUtils.WriteTraceData(ref serializedData, 0, this.processResource, batch);
+        
+        if (serializedData == null || serializedDataLength == -1)
         {
             return ExportResult.Failure;
         }
 
         try
         {
-            this.udpExporter.SendData(serializedData, this.signalPrefix);
+            this.udpExporter.SendData(serializedData, 0, serializedDataLength, this.signalPrefix);
             return ExportResult.Success;
         }
         catch (Exception ex)
@@ -109,9 +113,9 @@ internal class UdpExporter
         this.udpClient.Client.ReceiveTimeout = 1000; // Optional: Set timeout
     }
 
-    internal void SendData(byte[] data, string signalFormatPrefix)
+    internal void SendData(byte[] data, int offset, int serializedDataLength, string signalFormatPrefix)
     {
-        string base64EncodedString = Convert.ToBase64String(data);
+        string base64EncodedString = Convert.ToBase64String(data, offset, serializedDataLength);
         string message = $"{ProtocolHeader}{signalFormatPrefix}{base64EncodedString}";
 
         try

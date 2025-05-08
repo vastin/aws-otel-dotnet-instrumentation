@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Version>0.1.0</Version>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-    <TargetFrameworks>net6.0</TargetFrameworks>
+    <TargetFrameworks>net8.0</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -16,19 +16,10 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="OpenTelemetry" Version="1.9.0" />
-    <PackageReference Include="OpenTelemetry.Api" Version="1.9.0" />
-    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.9.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
-    <PackageReference Include="Google.Protobuf" Version="3.28.2" />
-    <PackageReference Include="Grpc.Tools" Version="2.65.0" PrivateAssets="all" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Protobuf Include="opentelemetry\proto\collector\trace\v1\trace_service.proto" GrpcServices="none" ProtoRoot="." />
-    <Protobuf Include="opentelemetry\proto\trace\v1\trace.proto" GrpcServices="none" ProtoRoot="." />
-    <Protobuf Include="opentelemetry\proto\resource\v1\resource.proto" GrpcServices="none" ProtoRoot="." />
-    <Protobuf Include="opentelemetry\proto\common\v1\common.proto" GrpcServices="none" ProtoRoot="." />
+    <PackageReference Include="OpenTelemetry" Version="1.11.2" />
+    <PackageReference Include="OpenTelemetry.Api" Version="1.11.2" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.11.2" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.0" />
   </ItemGroup>
 
   <!-- Items that are only added when building the NuGet package -->

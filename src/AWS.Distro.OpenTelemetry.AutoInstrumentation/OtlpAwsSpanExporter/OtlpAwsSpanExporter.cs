@@ -18,8 +18,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Exporter;
-using OpenTelemetry.Internal;
-using OpenTelemetry.Proto.Collector.Trace.V1;
 using OpenTelemetry.Resources;
 
 #pragma warning disable CS1700 // Assembly reference is invalid and cannot be resolved
@@ -46,7 +44,9 @@ public class OtlpAwsSpanExporter : BaseExporter<Activity>
 {
     private static readonly string ServiceName = "XRay";
     private static readonly string ContentType = "application/x-protobuf";
+#pragma warning disable CS0436 // Type conflicts with imported type
     private static readonly ILoggerFactory Factory = LoggerFactory.Create(builder => builder.AddProvider(new ConsoleLoggerProvider()));
+#pragma warning restore CS0436 // Type conflicts with imported type
     private static readonly ILogger Logger = Factory.CreateLogger<OtlpAwsSpanExporter>();
     private readonly HttpClient client = new HttpClient();
     private readonly Uri endpoint;
@@ -87,9 +87,11 @@ public class OtlpAwsSpanExporter : BaseExporter<Activity>
     {
         using IDisposable scope = SuppressInstrumentationScope.Begin();
 
-        byte[]? serializedSpans = OtlpExporterUtils.SerializeSpans(batch, this.processResource);
+        // Inheriting the size from upstream: https://github.com/open-telemetry/opentelemetry-dotnet/blob/24a13ab91c9c152d03fd0871bbb94e8f6ef08698/src/OpenTelemetry.Exporter.OpenTelemetryProtocol/OtlpLogExporter.cs#L28-L31
+        byte[] serializedData = new byte[750000];
+        int serializedDataLength = OtlpExporterUtils.WriteTraceData(ref serializedData, 0, this.processResource, batch);
 
-        if (serializedSpans == null)
+        if (serializedData == null || serializedDataLength == -1)
         {
             Logger.LogError("Null spans cannot be serialized");
             return ExportResult.Failure;
@@ -102,7 +104,7 @@ public class OtlpAwsSpanExporter : BaseExporter<Activity>
                  // The retry delay cannot exceed the configured timeout period for otlp exporter.
                  // If the backend responds with `RetryAfter` duration that would result in exceeding the configured timeout period
                  // we would fail and drop the data.
-                 return RetryHelper.ExecuteWithRetryAsync(() => this.InjectSigV4AndSendAsync(serializedSpans), TimeSpan.FromMilliseconds(this.timeout));
+                 return RetryHelper.ExecuteWithRetryAsync(() => this.InjectSigV4AndSendAsync(serializedData, 0, serializedDataLength), TimeSpan.FromMilliseconds(this.timeout));
              }).GetAwaiter().GetResult();
 
             if (message == null || message.StatusCode != HttpStatusCode.OK)
@@ -145,10 +147,10 @@ public class OtlpAwsSpanExporter : BaseExporter<Activity>
             : informationalVersion;
     }
 
-    private async Task<HttpResponseMessage> InjectSigV4AndSendAsync(byte[] serializedSpans)
+    private async Task<HttpResponseMessage> InjectSigV4AndSendAsync(byte[] serializedSpans, int offset, int serializedDataLength)
     {
         HttpRequestMessage httpRequest = new HttpRequestMessage(HttpMethod.Post, this.endpoint.AbsoluteUri);
-        IRequest sigV4Request = await this.GetSignedSigV4Request(serializedSpans);
+        IRequest sigV4Request = await this.GetSignedSigV4Request(serializedSpans, offset, serializedDataLength);
 
         sigV4Request.Headers.Remove("content-type");
         sigV4Request.Headers.Add("User-Agent", GetUserAgentString());
@@ -158,7 +160,7 @@ public class OtlpAwsSpanExporter : BaseExporter<Activity>
             httpRequest.Headers.TryAddWithoutValidation(header.Key, header.Value);
         }
 
-        var content = new ByteArrayContent(serializedSpans);
+        var content = new ByteArrayContent(serializedSpans, offset, serializedDataLength);
         content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(ContentType);
 
         httpRequest.Method = HttpMethod.Post;
@@ -167,12 +169,12 @@ public class OtlpAwsSpanExporter : BaseExporter<Activity>
         return await this.client.SendAsync(httpRequest);
     }
 
-    private async Task<IRequest> GetSignedSigV4Request(byte[] content)
+    private async Task<IRequest> GetSignedSigV4Request(byte[] content, int offset, int serializedDataLength)
     {
         IRequest request = new DefaultRequest(new EmptyAmazonWebServiceRequest(), ServiceName)
         {
             HttpMethod = "POST",
-            ContentStream = new MemoryStream(content),
+            ContentStream = new MemoryStream(content, offset, serializedDataLength),
             Endpoint = this.endpoint,
             SignatureVersion = SignatureVersion.SigV4,
         };
@@ -217,7 +219,9 @@ internal class RetryHelper
 
     // This is to ensure there is no flakiness with the number of times spans are exported in the retry window. Not part of the upstream's implementation
     private const int BufferWindow = 20;
+#pragma warning disable CS0436 // Type conflicts with imported type
     private static readonly ILoggerFactory Factory = LoggerFactory.Create(builder => builder.AddProvider(new ConsoleLoggerProvider()));
+#pragma warning restore CS0436 // Type conflicts with imported type
     private static readonly ILogger Logger = Factory.CreateLogger<OtlpAwsSpanExporter>();
 
 #if !NET6_0_OR_GREATER
