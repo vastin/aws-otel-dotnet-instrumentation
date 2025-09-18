@@ -37,52 +37,52 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Contrib Repo @ SHA - ${{ github.sha }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 #v5.0.0
 
       - name: Download Linux x64 Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 #v5.0.0
         with:
           name: aws-distro-opentelemetry-dotnet-instrumentation-linux-glibc-x64.zip
           path: ./artifacts/linux/x64
 
       - name: Download Linux arm64 Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 #v5.0.0
         with:
           name: aws-distro-opentelemetry-dotnet-instrumentation-linux-glibc-arm64.zip
           path: ./artifacts/linux/arm64
 
       - name: Download Windows Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 #v5.0.0
         with:
           name: aws-distro-opentelemetry-dotnet-instrumentation-windows.zip
           path: ./artifacts/windows
 
       - name: Download Linux X64 MUSL Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 #v5.0.0
         with:
           name: aws-distro-opentelemetry-dotnet-instrumentation-linux-musl-x64.zip
           path: ./artifacts/linux/x64-musl
 
       - name: Download Linux arm64 MUSL Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 #v5.0.0
         with:
           name: aws-distro-opentelemetry-dotnet-instrumentation-linux-musl-arm64.zip
           path: ./artifacts/linux/arm64-musl
 
       - name: Download bash installation script
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 #v5.0.0
         with:
           name: aws-otel-dotnet-install.sh
           path: ./installationScripts
 
       - name: Download psm1 installation script
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 #v5.0.0
         with:
           name: AWS.Otel.DotNet.Auto.psm1
           path: ./installationScripts
 
       - name: Configure AWS credentials for Private S3 Bucket
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 #v5.0.0
         with:
           role-to-assume: ${{ secrets.AWS_ASSUME_ROLE_ARN }}
           aws-region: ${{ env.AWS_DEFAULT_REGION }}
@@ -156,13 +156,13 @@ jobs:
           - os: windows-2022
           - os: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 #v5.0.0
 
 
 
 
       - name: Configure AWS credentials for public ECR
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 #v5.0.0
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN_ECR_RELEASE }}
           aws-region: ${{ env.AWS_PUBLIC_ECR_REGION }}
@@ -176,19 +176,19 @@ jobs:
 
       - name: Login to Amazon public ECR
         id: login-ecr-public
-        uses: aws-actions/amazon-ecr-login@v2
+        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 #v2.0.1
         with:
           registry-type: public
 
       - name: Configure AWS credentials for private ECR
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 #v5.0.0
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN_ECR_RELEASE }}
           aws-region: ${{ env.AWS_PRIVATE_ECR_REGION }}
 
       - name: Login to Amazon private ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 #v2.0.1
 
       - name: Build and scan Linux images
         if: runner.os == 'Linux'
@@ -238,24 +238,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Configure AWS credentials for private ECR
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 #v5.0.0
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN_ECR_RELEASE }}
           aws-region: ${{ env.AWS_PRIVATE_ECR_REGION }}
 
       - name: Log in to AWS private ECR
-        uses: docker/login-action@v3
+        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 #v3.5.0
         with:
           registry: ${{ env.RELEASE_PRIVATE_REGISTRY }}
 
       - name: Configure AWS credentials for public ECR
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 #v5.0.0
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN_ECR_RELEASE }}
           aws-region: ${{ env.AWS_PUBLIC_ECR_REGION }}
 
       - name: Log in to AWS public ECR
-        uses: docker/login-action@v3
+        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 #v3.5.0
         with:
           registry: public.ecr.aws
 
@@ -279,7 +279,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 #v5.0.0
         
       - name: Install dependencies
         run: dotnet restore .\src\AWS.Distro.OpenTelemetry.AutoInstrumentation /p:_IsPacking=true
@@ -291,7 +291,7 @@ jobs:
           --no-restore
 
       - name: Assume signer role
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 #v5.0.0
         with:
           role-to-assume: ${{ secrets.AWS_ARTIFACT_ACCESS_ROLE_ARN }}
           aws-region: ${{ env.AWS_SIGNING_KEY_REGION }}
@@ -316,13 +316,13 @@ jobs:
           -o .\Deployment\nuget-packages
 
       - name: Upload nugets to this GitHub Action run as an artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 #v4.6.2
         with:
           name: nuget-packages.zip
           path: Deployment/nuget-packages/
 
       - name: Assume nuget role
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 #v5.0.0
         with:
           role-to-assume: ${{ secrets.NUGET_ACCESS_ROLE_ARN }}
           aws-region: ${{ env.AWS_SIGNING_KEY_REGION }}
