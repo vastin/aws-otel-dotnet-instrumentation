@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Reflection;
 using Amazon.Runtime;
+using Amazon.Runtime.Identity;
 using Amazon.Runtime.Internal;
 using Moq;
 using Moq.Protected;
@@ -54,7 +55,7 @@ public class OtlpAwsSpanExporterTest
     public void TestAwsSpanExporterInjectSigV4Headers()
     {
         MockAuthenticator mockAuth = new MockAuthenticator(
-            new ImmutableCredentials(
+            new SessionAWSCredentials(
             "test_key",
             "test_key1",
             "secret_token"),
@@ -83,7 +84,7 @@ public class OtlpAwsSpanExporterTest
     public void TestAwsSpanExporterInjectsSigV4HeadersMultipleExports()
     {
         MockAuthenticator mockAuth = new MockAuthenticator(
-            new ImmutableCredentials("test_key", "test_key1", "secret_token"),
+            new SessionAWSCredentials("test_key", "test_key1", "secret_token"),
             this.baseHeaders);
 
         BaseExporter<Activity> exporter = new OtlpAwsSpanExporter(this.options, this.tracerProvider.GetDefaultResource(), mockAuth);
@@ -116,7 +117,7 @@ public class OtlpAwsSpanExporterTest
         foreach (HttpStatusCode statusCode in unRetryableStatusCodes)
         {
             MockAuthenticator mockAuth = new MockAuthenticator(
-            new ImmutableCredentials(
+            new SessionAWSCredentials(
             "test_key",
             "test_key1",
             "secret_token"),
@@ -149,7 +150,7 @@ public class OtlpAwsSpanExporterTest
         foreach (HttpStatusCode statusCode in retryableStatusCodes)
         {
             MockAuthenticator mockAuth = new MockAuthenticator(
-                new ImmutableCredentials(
+                new SessionAWSCredentials(
                 "test_key",
                 "test_key1",
                 "secret_token"),
@@ -241,30 +242,30 @@ internal abstract class MockCounterAuthenticator : IAwsAuthenticator
 {
     public int CallCount { get; set; } = 0;
 
-    public abstract Task<ImmutableCredentials> GetCredentialsAsync();
+    public abstract Task<BaseIdentity> GetCredentialsAsync();
 
-    public abstract void Sign(IRequest request, IClientConfig config, ImmutableCredentials credentials);
+    public abstract void Sign(IRequest request, IClientConfig config, BaseIdentity credentials);
 }
 
 // A Mock authenticator that injects different SigV4 headers using the number of times an attempt was made for SigV4 signing.
 internal class MockAuthenticator : MockCounterAuthenticator
 {
-    private ImmutableCredentials credentials;
+    private BaseIdentity credentials;
     private Dictionary<string, string> customHeaders;
 
-    internal MockAuthenticator(ImmutableCredentials credentials, Dictionary<string, string> customHeaders)
+    internal MockAuthenticator(BaseIdentity credentials, Dictionary<string, string> customHeaders)
     {
         this.credentials = credentials;
         this.customHeaders = customHeaders;
     }
 
-    public async override Task<ImmutableCredentials> GetCredentialsAsync()
+    public async override Task<BaseIdentity> GetCredentialsAsync()
     {
         this.CallCount += 1;
         return await Task.Run(() => this.credentials);
     }
 
-    public override void Sign(IRequest request, IClientConfig config, ImmutableCredentials credentials)
+    public override void Sign(IRequest request, IClientConfig config, BaseIdentity credentials)
     {
         foreach (string key in this.customHeaders.Keys)
         {
@@ -276,13 +277,13 @@ internal class MockAuthenticator : MockCounterAuthenticator
 // A Mock authenticator that throws when signing SigV4.
 internal class MockThrowableSignerAuthenticator : MockCounterAuthenticator
 {
-    public override async Task<ImmutableCredentials> GetCredentialsAsync()
+    public override async Task<BaseIdentity> GetCredentialsAsync()
     {
         this.CallCount += 1;
-        return await Task.Run(() => new ImmutableCredentials("test_key", "test_key1", "test_tokens"));
+        return await Task.Run(() => (BaseIdentity)new SessionAWSCredentials("test_key", "test_key1", "test_tokens"));
     }
 
-    public override void Sign(IRequest request, IClientConfig config, ImmutableCredentials credentials)
+    public override void Sign(IRequest request, IClientConfig config, BaseIdentity credentials)
     {
         throw new AmazonClientException(string.Empty);
     }
@@ -291,13 +292,13 @@ internal class MockThrowableSignerAuthenticator : MockCounterAuthenticator
 // A Mock authenticator that throws when getting AWS credentials.
 internal class MockThrowableCredentialsAuthenticator : MockCounterAuthenticator
 {
-    public override async Task<ImmutableCredentials> GetCredentialsAsync()
+    public override async Task<BaseIdentity> GetCredentialsAsync()
     {
         this.CallCount += 1;
-        return await Task.FromException<ImmutableCredentials>(new AmazonClientException(string.Empty));
+        return await Task.FromException<BaseIdentity>(new AmazonClientException(string.Empty));
     }
 
-    public override void Sign(IRequest request, IClientConfig config, ImmutableCredentials credentials)
+    public override void Sign(IRequest request, IClientConfig config, BaseIdentity credentials)
     {
         return;
     }

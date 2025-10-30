@@ -176,8 +176,8 @@ class AWSSdkTest(ContractTestBase):
             remote_resource_identifier="test_table",
             cloudformation_primary_identifier="test_table",
             request_response_specific_attributes={
-                # SpanAttributes.AWS_DYNAMODB_TABLE_NAMES: ["test_table"],
-                "aws.table_name": ["test_table"],
+                # Updated to use V1_28_0 semantic conventions
+                "aws.dynamodb.table_names": ["test_table"],
             },
             span_name="DynamoDB.CreateTable",
         )
@@ -195,8 +195,8 @@ class AWSSdkTest(ContractTestBase):
             remote_resource_identifier="test_table",
             cloudformation_primary_identifier="test_table",
             request_response_specific_attributes={
-                # SpanAttributes.AWS_DYNAMODB_TABLE_NAMES: ["test_table"],
-                "aws.table_name": ["test_table"],
+                # Updated to use V1_28_0 semantic conventions
+                "aws.dynamodb.table_names": ["test_table"],
             },
             span_name="DynamoDB.PutItem",
         )
@@ -216,7 +216,7 @@ class AWSSdkTest(ContractTestBase):
             remote_resource_region="us-east-1",
             cloudformation_primary_identifier="test-table",
             request_response_specific_attributes={
-                "aws.table_name": ["test-table"],
+                "aws.dynamodb.table_names": ["test-table"],
             },
             response_specific_attributes={
                 _AWS_DYNAMODB_TABLE_ARN: r"arn:aws:dynamodb:us-east-1:000000000000:table/test-table",
@@ -994,7 +994,14 @@ class AWSSdkTest(ContractTestBase):
         self._assert_str_attribute(attributes_dict, SpanAttributes.RPC_METHOD, operation)
         self._assert_str_attribute(attributes_dict, SpanAttributes.RPC_SYSTEM, "aws-api")
         self._assert_str_attribute(attributes_dict, SpanAttributes.RPC_SERVICE, rpc_service)
-        self._assert_int_attribute(attributes_dict, SpanAttributes.HTTP_STATUS_CODE, status_code)
+        # HTTP semantic conventions: Accept both old (http.status_code) and new (http.response.status_code)
+        # Error responses from AWS SDK v4 use old convention, success responses use new convention
+        if "http.response.status_code" in attributes_dict:
+            self._assert_int_attribute(attributes_dict, "http.response.status_code", status_code)
+        elif "http.status_code" in attributes_dict:
+            self._assert_int_attribute(attributes_dict, "http.status_code", status_code)
+        else:
+            raise AssertionError(f"Neither 'http.response.status_code' nor 'http.status_code' found in attributes")
         for key, value in request_response_specific_attributes.items():
             if isinstance(value, str):
                 self._assert_str_attribute(attributes_dict, key, value)

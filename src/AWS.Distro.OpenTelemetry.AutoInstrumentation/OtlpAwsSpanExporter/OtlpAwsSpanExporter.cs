@@ -187,13 +187,18 @@ public class OtlpAwsSpanExporter : BaseExporter<Activity>
             RegionEndpoint = RegionEndpoint.GetBySystemName(this.region),
         };
 
-        ImmutableCredentials credentials = await this.authenticator.GetCredentialsAsync();
+        var credentials = await this.authenticator.GetCredentialsAsync();
 
-        // Need to explictily add this for using temporary security credentials from AWS STS.
+        // In AWS SDK v4, check if credentials are AWSCredentials to access Token
+        // Need to explicitly add this for using temporary security credentials from AWS STS.
         // SigV4 signing library does not automatically add this header.
-        if (credentials.UseToken && credentials.Token != null)
+        if (credentials is AWSCredentials awsCredentials)
         {
-            request.Headers.Add("x-amz-security-token", credentials.Token);
+            var immutableCreds = await awsCredentials.GetCredentialsAsync();
+            if (immutableCreds.UseToken && immutableCreds.Token != null)
+            {
+                request.Headers.Add("x-amz-security-token", immutableCreds.Token);
+            }
         }
 
         request.Headers.Add("Host", this.endpoint.Host);

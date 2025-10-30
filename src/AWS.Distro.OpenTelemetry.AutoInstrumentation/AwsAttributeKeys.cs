@@ -52,11 +52,9 @@ internal sealed class AwsAttributeKeys
     // This attribute is being used here:
     // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/4c6474259ccb08a41eb45ea6424243d4d2c707db/src/OpenTelemetry.Instrumentation.AWS/Implementation/AWSSemanticConventions.cs#L13
     // However, the one in Opentelemetry.SemanticConventions
-    // public const string AttributeAwsDynamodbTableNames = "aws.dynamodb.table_names"
-    // Going to use the below one because of the manual instrumentation.
-    // TODO: update/remove attribute according to auto instrumentation.
+    // Updated to use V1_28_0 semantic conventions to match AWS SDK v4 instrumentation
     internal static readonly string AttributeAWSDynamoTableArn = "aws.dynamodb.table.arn";
-    internal static readonly string AttributeAWSDynamoTableName = "aws.table_name";
+    internal static readonly string AttributeAWSDynamoTableName = "aws.dynamodb.table_names";
     internal static readonly string AttributeAWSSQSQueueUrl = "aws.queue_url";
 
     internal static readonly string AttributeAWSLambdaFunctionArn = "aws.lambda.function.arn";

@@ -206,7 +206,10 @@ public class Plugin
             builder.AddProcessor(processor);
         }
 
-        builder.AddAWSInstrumentation();
+        builder.AddAWSInstrumentation(options =>
+        {
+            options.SuppressDownstreamInstrumentation = true;
+        });
 #if !NETFRAMEWORK
         builder.AddAWSLambdaConfigurations();
 #endif
@@ -326,6 +329,12 @@ public class Plugin
                 return false;
             }
 
+            // Filter out EC2 metadata service calls (used by AWS SDK for credential retrieval)
+            if (request.RequestUri?.Host == "169.254.169.254")
+            {
+                return false;
+            }
+
             return true;
         };
 
@@ -342,6 +351,12 @@ public class Plugin
         options.FilterHttpWebRequest = request =>
         {
             if (request.RequestUri?.AbsolutePath == "/GetSamplingRules" || request.RequestUri?.AbsolutePath == "/SamplingTargets")
+            {
+                return false;
+            }
+
+            // Filter out EC2 metadata service calls (used by AWS SDK for credential retrieval)
+            if (request.RequestUri?.Host == "169.254.169.254")
             {
                 return false;
             }
