@@ -35,7 +35,10 @@ jobs:
   # so downstream jobs keep consuming them by name with no changes.
   download-artifacts:
     environment: Release
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-adot-dotnet-runner-${{ github.run_id }}-${{ github.run_attempt }}
+      - image:ubuntu-8.0
+      - instance-size:large
     # This job selects another workflow run and downloads its artifacts cross-run; both the
     # workflow-run query and the cross-run artifact download require actions: read. Because the
     # workflow-level permissions block is declared, unlisted scopes default to none, so grant it
