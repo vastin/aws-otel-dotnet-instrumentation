@@ -31,20 +31,26 @@ runs:
       shell: pwsh
       env:
         GH_VERSION: v2.102.0
+        GH_SHA256: ae64e556ecc240b200f7eba60d550e4bb60d78e860e69dd88c449405b86067f4
         JQ_VERSION: jq-1.8.2
+        JQ_SHA256: a6fc67fedaf9128a3309a1e2ebb8b986aeccf70122ee46d2cb4849e423f0c627
       # Pinned GitHub release downloads instead of Chocolatey, so versions are reproducible and bumpable.
       run: |
         $ProgressPreference = 'SilentlyContinue'
+        function Get-Verified($url, $path, $sha256) {
+          Invoke-WebRequest $url -OutFile $path
+          if ((Get-FileHash $path -Algorithm SHA256).Hash -ne $sha256) { throw "Checksum mismatch for $url" }
+        }
         $bin = Join-Path $env:RUNNER_TEMP 'codebuild-runner-bin'
         New-Item -ItemType Directory -Force $bin | Out-Null
         if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
           $zip = Join-Path $env:RUNNER_TEMP 'gh.zip'
-          Invoke-WebRequest "https://github.com/cli/cli/releases/download/$env:GH_VERSION/gh_$($env:GH_VERSION.TrimStart('v'))_windows_amd64.zip" -OutFile $zip
+          Get-Verified "https://github.com/cli/cli/releases/download/$env:GH_VERSION/gh_$($env:GH_VERSION.TrimStart('v'))_windows_amd64.zip" $zip $env:GH_SHA256
           Expand-Archive $zip -DestinationPath (Join-Path $env:RUNNER_TEMP 'gh') -Force
           Copy-Item (Join-Path $env:RUNNER_TEMP 'gh\bin\gh.exe') $bin
         }
         if (-not (Get-Command jq -ErrorAction SilentlyContinue)) {
-          Invoke-WebRequest "https://github.com/jqlang/jq/releases/download/$env:JQ_VERSION/jq-windows-amd64.exe" -OutFile (Join-Path $bin 'jq.exe')
+          Get-Verified "https://github.com/jqlang/jq/releases/download/$env:JQ_VERSION/jq-windows-amd64.exe" (Join-Path $bin 'jq.exe') $env:JQ_SHA256
         }
         Add-Content $env:GITHUB_PATH $bin
 
@@ -53,6 +59,8 @@ runs:
       shell: bash
       env:
         YQ_VERSION: v4.54.1
+        YQ_SHA256_AMD64: 8e34fc298390875de416e6a4afcb8cabeceb25d9aa8506c1a2f9353cf702ea5f
+        YQ_SHA256_ARM64: 189088da0c6429ec5178dfaab1a114805f6cab0b61b165ab236efedf1d57a71b
       run: |
         set -euo pipefail
         packages=()
@@ -71,8 +79,14 @@ runs:
         fi
         if ! yq --version 2>/dev/null | grep -q mikefarah; then
           arch=$(dpkg --print-architecture 2>/dev/null || uname -m | sed 's/x86_64/amd64/; s/aarch64/arm64/')
-          sudo curl -fsSL -o /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${arch}"
-          sudo chmod +x /usr/local/bin/yq
+          case "$arch" in
+            amd64) sha256=$YQ_SHA256_AMD64 ;;
+            arm64) sha256=$YQ_SHA256_ARM64 ;;
+            *) echo "No pinned yq checksum for $arch" >&2; exit 1 ;;
+          esac
+          curl -fsSL -o "$RUNNER_TEMP/yq" "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${arch}"
+          echo "$sha256  $RUNNER_TEMP/yq" | sha256sum -c --quiet
+          sudo install -m 0755 "$RUNNER_TEMP/yq" /usr/local/bin/yq
         fi
 
     # CodeBuild runs the job in a container (/.dockerenv exists) next to the Docker daemon, not on it.
