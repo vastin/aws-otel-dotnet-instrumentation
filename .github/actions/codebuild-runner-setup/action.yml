@@ -38,21 +38,24 @@ runs:
       run: |
         $ProgressPreference = 'SilentlyContinue'
         function Get-Verified($url, $path, $sha256) {
-          Invoke-WebRequest $url -OutFile $path
+          Invoke-WebRequest $url -OutFile $path -TimeoutSec 120 -MaximumRetryCount 3 -RetryIntervalSec 5
           if ((Get-FileHash $path -Algorithm SHA256).Hash -ne $sha256) { throw "Checksum mismatch for $url" }
         }
         $bin = Join-Path $env:RUNNER_TEMP 'codebuild-runner-bin'
         New-Item -ItemType Directory -Force $bin | Out-Null
+        $installed = $false
         if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
           $zip = Join-Path $env:RUNNER_TEMP 'gh.zip'
           Get-Verified "https://github.com/cli/cli/releases/download/$env:GH_VERSION/gh_$($env:GH_VERSION.TrimStart('v'))_windows_amd64.zip" $zip $env:GH_SHA256
           Expand-Archive $zip -DestinationPath (Join-Path $env:RUNNER_TEMP 'gh') -Force
           Copy-Item (Join-Path $env:RUNNER_TEMP 'gh\bin\gh.exe') $bin
+          $installed = $true
         }
         if (-not (Get-Command jq -ErrorAction SilentlyContinue)) {
           Get-Verified "https://github.com/jqlang/jq/releases/download/$env:JQ_VERSION/jq-windows-amd64.exe" (Join-Path $bin 'jq.exe') $env:JQ_SHA256
+          $installed = $true
         }
-        Add-Content $env:GITHUB_PATH $bin
+        if ($installed) { Add-Content $env:GITHUB_PATH $bin }
 
     - name: Install missing Linux CLIs
       if: runner.os == 'Linux'
@@ -94,6 +97,8 @@ runs:
     # which fails (KeyError: 'bridge') for containers on a custom network, as our contract tests use.
     # Mapped ports are not reachable on localhost from the job container, only via its default gateway
     # (the Docker host), so point Testcontainers there and drop the in-container detection.
+    # Testcontainers 3.x detects "in a container" only from /.dockerenv and has no setting to turn it off, so
+    # the file has to go. The job container is discarded after the job, so nothing outlives this change.
     - name: Point Testcontainers at the Docker host
       if: runner.os == 'Linux'
       shell: bash

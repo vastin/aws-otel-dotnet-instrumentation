@@ -25,7 +25,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os == 'macos-latest' && 'macos-latest' || fromJSON(format('["codebuild-adot-dotnet-runner-{0}-{1}", {2}]', github.run_id, github.run_attempt, startsWith(matrix.os, 'windows') && '"image:windows-ec2-2022", "instance-size:large"' || '"image:ubuntu-8.0", "instance-size:large"')) }}
+    runs-on: ${{ fromJSON(format('["codebuild-adot-dotnet-runner-{0}-{1}", {2}]', github.run_id, github.run_attempt, startsWith(matrix.os, 'windows') && '"image:windows-ec2-2022", "instance-size:large"' || '"image:ubuntu-8.0", "instance-size:large"')) }}
     env:
       # CodeBuild Windows images do not enable git long paths like GitHub's images do, and checkout fails
       # without them. Set through env because checkout runs before any setup step can.
@@ -182,7 +182,7 @@ jobs:
 
   build-and-scan-images:
     needs: [build, build-arm64, build-x64-musl, build-arm64-musl]
-    runs-on: ${{ matrix.os == 'macos-latest' && 'macos-latest' || fromJSON(format('["codebuild-adot-dotnet-runner-{0}-{1}", {2}]', github.run_id, github.run_attempt, startsWith(matrix.os, 'windows') && '"image:windows-ec2-2022", "instance-size:large"' || '"image:ubuntu-8.0", "instance-size:large"')) }}
+    runs-on: ${{ fromJSON(format('["codebuild-adot-dotnet-runner-{0}-{1}", {2}]', github.run_id, github.run_attempt, startsWith(matrix.os, 'windows') && '"image:windows-ec2-2022", "instance-size:large"' || '"image:ubuntu-8.0", "instance-size:large"')) }}
     env:
       # CodeBuild Windows images do not enable git long paths like GitHub's images do, and checkout fails
       # without them. Set through env because checkout runs before any setup step can.
@@ -229,7 +229,7 @@ jobs:
     runs-on:
       - codebuild-adot-dotnet-runner-${{ github.run_id }}-${{ github.run_attempt }}
       - image:ubuntu-8.0
-      - instance-size:large
+      - instance-size:small
     if: always() && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/v'))
     steps:
       - name: Configure AWS Credentials for emitting metrics

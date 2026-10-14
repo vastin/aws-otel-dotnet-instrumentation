@@ -62,7 +62,7 @@ jobs:
   unit-tests:
     name: Unit | OTel ${{ matrix.dependency.otel }} | Auto ${{ matrix.dependency.auto }} | ${{ matrix.platform.tfm }}
     needs: validate-version
-    runs-on: ${{ matrix.platform.os == 'macos-latest' && 'macos-latest' || fromJSON(format('["codebuild-adot-dotnet-runner-{0}-{1}", {2}]', github.run_id, github.run_attempt, startsWith(matrix.platform.os, 'windows') && '"image:windows-ec2-2022", "instance-size:large"' || '"image:ubuntu-8.0", "instance-size:large"')) }}
+    runs-on: ${{ fromJSON(format('["codebuild-adot-dotnet-runner-{0}-{1}", {2}]', github.run_id, github.run_attempt, startsWith(matrix.platform.os, 'windows') && '"image:windows-ec2-2022", "instance-size:large"' || '"image:ubuntu-8.0", "instance-size:large"')) }}
     env:
       # CodeBuild Windows images do not enable git long paths like GitHub's images do, and checkout fails
       # without them. Set through env because checkout runs before any setup step can.
