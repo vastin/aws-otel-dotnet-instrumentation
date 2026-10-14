@@ -29,16 +29,24 @@ runs:
     - name: Install missing Windows CLIs
       if: runner.os == 'Windows'
       shell: pwsh
+      env:
+        GH_VERSION: v2.102.0
+        JQ_VERSION: jq-1.8.2
+      # Pinned GitHub release downloads instead of Chocolatey, so versions are reproducible and bumpable.
       run: |
-        $missing = @('gh', 'jq') | Where-Object { -not (Get-Command $_ -ErrorAction SilentlyContinue) }
-        if ($missing) {
-          choco install @missing -y --no-progress
-          if ($LASTEXITCODE) { exit $LASTEXITCODE }
-          # Chocolatey updates the machine PATH, which this runner process does not reload.
-          foreach ($dir in "$env:ProgramFiles\GitHub CLI", "$env:ProgramData\chocolatey\bin") {
-            if (Test-Path $dir) { Add-Content $env:GITHUB_PATH $dir }
-          }
+        $ProgressPreference = 'SilentlyContinue'
+        $bin = Join-Path $env:RUNNER_TEMP 'codebuild-runner-bin'
+        New-Item -ItemType Directory -Force $bin | Out-Null
+        if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
+          $zip = Join-Path $env:RUNNER_TEMP 'gh.zip'
+          Invoke-WebRequest "https://github.com/cli/cli/releases/download/$env:GH_VERSION/gh_$($env:GH_VERSION.TrimStart('v'))_windows_amd64.zip" -OutFile $zip
+          Expand-Archive $zip -DestinationPath (Join-Path $env:RUNNER_TEMP 'gh') -Force
+          Copy-Item (Join-Path $env:RUNNER_TEMP 'gh\bin\gh.exe') $bin
         }
+        if (-not (Get-Command jq -ErrorAction SilentlyContinue)) {
+          Invoke-WebRequest "https://github.com/jqlang/jq/releases/download/$env:JQ_VERSION/jq-windows-amd64.exe" -OutFile (Join-Path $bin 'jq.exe')
+        }
+        Add-Content $env:GITHUB_PATH $bin
 
     - name: Install missing Linux CLIs
       if: runner.os == 'Linux'
