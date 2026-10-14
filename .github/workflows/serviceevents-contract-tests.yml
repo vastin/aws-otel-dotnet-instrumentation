@@ -36,10 +36,8 @@ permissions:
 
 jobs:
   serviceevents-contract-test:
-    runs-on:
-      - codebuild-adot-dotnet-runner-${{ github.run_id }}-${{ github.run_attempt }}
-      - image:ubuntu-8.0
-      - instance-size:large
+    # Fork PRs run on GitHub-hosted runners; the CodeBuild webhook requires approval for them.
+    runs-on: ${{ github.event.pull_request.head.repo.fork && 'ubuntu-latest' || fromJSON(format('["codebuild-adot-dotnet-runner-{0}-{1}", "image:ubuntu-8.0", "instance-size:large"]', github.run_id, github.run_attempt)) }}
     steps:
       - name: Checkout @ SHA - ${{ github.sha }}
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 #v5.0.0
