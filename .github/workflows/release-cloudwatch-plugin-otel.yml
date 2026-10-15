@@ -339,9 +339,9 @@ jobs:
           Write-Output "::add-mask::$nugetKey"
 
           $packagePath = ".\Deployment\cloudwatch-plugin-otel\$env:PACKAGE_ID.$env:VERSION_INPUT.nupkg"
-          nuget push $packagePath `
-            -Source "https://api.nuget.org/v3/index.json" `
-            -ApiKey $nugetKey
+          dotnet nuget push $packagePath `
+            --source "https://api.nuget.org/v3/index.json" `
+            --api-key $nugetKey
 
           if ($LASTEXITCODE -ne 0) {
             throw "NuGet publication failed."

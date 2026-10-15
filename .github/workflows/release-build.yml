@@ -217,10 +217,10 @@ jobs:
           --output text
           --query SecretString | ConvertFrom-Json
 
-          nuget push
+          dotnet nuget push
           .\Deployment\nuget-packages\*.nupkg
-          -Source https://api.nuget.org/v3/index.json
-          -ApiKey $nugetKey.Key
+          --source https://api.nuget.org/v3/index.json
+          --api-key $nugetKey.Key
 
   release-image:
     needs: build-release-nuget
