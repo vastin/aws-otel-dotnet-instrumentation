@@ -101,13 +101,18 @@ jobs:
             9.0.x
             10.0.x
 
+      # The CodeBuild Windows workspace path is long enough that .NET Framework hits MAX_PATH loading test
+      # dependencies from bin\, so net472 tests build into a short directory there. TreatNoTestsAsError fails
+      # the step if the test assembly can't be loaded at all; dotnet test otherwise exits 0 with no tests run.
       - name: Run unit tests
         run: >
           dotnet test test/AWS.OpenTelemetry.CloudWatch.Plugin.Tests
           --configuration Release
           --framework ${{ matrix.platform.tfm }}
+          ${{ startsWith(matrix.platform.os, 'windows') && '--output C:\cwt' || '' }}
           -p:OpenTelemetryVersion=${{ matrix.dependency.otel }}
           -p:OpenTelemetryAutoInstrumentationVersion=${{ matrix.dependency.auto }}
+          '--' RunConfiguration.TreatNoTestsAsError=true
 
   contract-tests:
     name: Contract | OTel ${{ matrix.dependency.otel }} | Auto ${{ matrix.dependency.auto }}
