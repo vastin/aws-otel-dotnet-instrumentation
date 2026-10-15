@@ -16,7 +16,7 @@ If your change does not need a CHANGELOG entry, add the "skip changelog" label t
   and removes ones registered by earlier versions. GAC'd copies replaced the AWS SDK of every .NET Framework
   application on the host, which crashed applications using newer AWS SDK packages
   (e.g. `MissingMethodException`), even when not instrumented.
-  ([#TBD](https://github.com/aws-observability/aws-otel-dotnet-instrumentation/pull/TBD))
+  ([#487](https://github.com/aws-observability/aws-otel-dotnet-instrumentation/pull/487))
 
 - **(Breaking Change)** Reuse the upstream OTLP log exporter for SigV4.
   In AWS Lambda, you must explicitly set `OTEL_LOGS_EXPORTER=otlp` to enable
