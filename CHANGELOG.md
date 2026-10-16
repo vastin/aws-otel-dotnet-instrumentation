@@ -23,6 +23,12 @@ If your change does not need a CHANGELOG entry, add the "skip changelog" label t
   (e.g. `MissingMethodException`), even when not instrumented.
   ([#487](https://github.com/aws-observability/aws-otel-dotnet-instrumentation/pull/487))
 
+- Add SigV4 signing to the upstream OTLP metric exporter.
+  To enable it, set `OTEL_METRICS_EXPORTER=otlp`,
+  `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=https://monitoring.<region>.amazonaws.com/v1/metrics`,
+  and `OTEL_EXPORTER_OTLP_METRICS_PROTOCOL=http/protobuf`.
+  ([#484](https://github.com/aws-observability/aws-otel-dotnet-instrumentation/pull/484)).
+
 - **(Breaking Change)** Reuse the upstream OTLP log exporter for SigV4.
   In AWS Lambda, you must explicitly set `OTEL_LOGS_EXPORTER=otlp` to enable
   SigV4 log export. Setting `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT` alone no longer
