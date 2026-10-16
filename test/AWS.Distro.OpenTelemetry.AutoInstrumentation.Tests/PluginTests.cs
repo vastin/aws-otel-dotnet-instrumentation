@@ -88,6 +88,9 @@ public class OtlpAwsSpanExporterConfigurationTests : PluginTests
         string[] endpoints =
         {
             "https://xray.us-east-1.amazonaws.com/v1/traces",
+            "https://xray.eu-west-1.amazonaws.com/v1/traces",
+            "https://xray.cn-north-1.amazonaws.com.cn/v1/traces",
+            "https://xray.cn-northwest-1.amazonaws.com.cn/v1/traces",
             "https://XRAY.US-EAST-1.AMAZONAWS.COM/V1/TRACES",
             "https://XRAY.US-EAST-1.amazonaws.com/v1/traces",
             "https://xray.US-EAST-1.AMAZONAWS.com/v1/traces",
@@ -165,6 +168,14 @@ public class OtlpAwsSpanExporterConfigurationTests : PluginTests
             "https:/xray.us-east-1.amazonaws.com/v1/traces",
             "https:://xray.us-east-1.amazonaws.com/v1/traces",
             "https://logs.us-east-1.amazonaws.com/v1/logs",
+            "https://xray.cn-north-1.amazonaws.com.cn.evil/v1/traces",
+            "https://xray.us-east-1.amazonaws.com.evil/v1/traces",
+            "https://xray.cn-north-1.amazonaws.cn/v1/traces",
+            "https://xray.cn-north-1.cn.amazonaws.com/v1/traces",
+            "https://xray.us-east-1.amazonaws.com/v1/metrics",
+            "https://logs.us-east-1.amazonaws.com/v1/traces",
+            "https://xray.us-east-1.amazonaws.com/v1/traces/extra",
+            "https://example.com/v1/traces",
         };
         foreach (var endpoint in endpoints)
         {
@@ -407,6 +418,9 @@ public class OtlpAwsLogRecordExporterConfigurationTests : PluginTests
         foreach (var endpoint in new[]
         {
             CloudWatchLogsEndpoint,
+            "https://logs.eu-west-1.amazonaws.com/v1/logs",
+            "https://logs.cn-north-1.amazonaws.com.cn/v1/logs",
+            "https://logs.cn-northwest-1.amazonaws.com.cn/v1/logs",
             "https://LOGS.US-EAST-1.AMAZONAWS.COM/V1/LOGS",
             "https://LOGS.US-EAST-1.amazonaws.com/v1/logs",
             "https://logs.US-EAST-1.AMAZONAWS.com/v1/logs",
@@ -465,6 +479,12 @@ public class OtlpAwsLogRecordExporterConfigurationTests : PluginTests
             "https:/logs.us-east-1.amazonaws.com/v1/logs",
             "https:://logs.us-east-1.amazonaws.com/v1/logs",
             "https://xray.us-east-1.amazonaws.com/v1/traces",
+            "https://logs.cn-north-1.amazonaws.com.cn.evil/v1/logs",
+            "https://logs.us-east-1.amazonaws.com.evil/v1/logs",
+            "https://logs.cn-north-1.amazonaws.cn/v1/logs",
+            "https://logs.us-east-1.amazonaws.com/v1/traces",
+            "https://xray.us-east-1.amazonaws.com/v1/logs",
+            "https://example.com/v1/logs",
         })
         {
             yield return new object[] { CreateSigV4LogsConfig(endpoint) };
